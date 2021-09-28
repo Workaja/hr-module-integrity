@@ -1,0 +1,626 @@
+General Functions :
+include "...";
+Include the file "..." into current file, all capabilities on included file can be used on.
+
+$module = array("title" => "Dashboard", "appname" => "HR");
+This array to show page title on every pages, it has different title since we make different function inside of them.
+
+$getInfoClaim
+Running query for load :
+allhclaim (load non restriction data from health claim table)
+drafthclaim (load data from health claim table with DRAFT status)
+approvedhclaim (load data from health claim table with APPROVED status)
+rejectedhclaim (load data from health claim table with REJECTED status)
+and, or...
+alllclaim (load non restriction data from leave claim table)
+draftlclaim (load data from leave claim table with DRAFT status)
+approvedlclaim (load data from leave claim table with APPROVED status)
+rejectedlclaim (load data from leave claim table with REJECTED status)
+and, or...
+allvpclaim (load non restriction data from variable pay claim table)
+draftvpclaim (load data from variable pay claim table with DRAFT status)
+approvedvpclaim (load data from variable pay claim table with APPROVED status)
+rejectedvpclaim (load data from variable pay claim table with REJECTED status)
+
+$CInfo
+For fetch all result from $getInfoClaim with pattern of $Cinfo['...']
+
+date-picker
+JQuery UI date picker to show a picker to select date, current format as requested = dd-mm-yyyy
+
+General Used on Claim Form
+$getLastClaimNumber
+To get last claim number with format KX-1600000
+
+$ClaimNum
+Fetch the claim number data
+
+$getnumOfClaim
+Dissect the claim number into this pieces 00000 (five from last)
+
+$newnumOfClaim
+Add 1 on number claim ($getnumOfClaim + 1)
+
+$newnumClaim
+Combine new claim number into KX-16 & $newnumOfClaim
+
+header("Location: ___.php");
+Redirect into location / page
+
+$numbering
+To give numbering on table start number from 0, if ++$numbering, the start from 1 to N
+
+DataTable
+To format the table with pagination and styles
+
+$owner
+To limit certain pages with owner, so other people without identification as the page owner will be kicked out
+
+
+////
+Connector (__connection.php)
+SESSION_START;
+For start the session, uses for login system and dispatch any data required for the application.
+
+$ki
+It’s for any starting querying database, related into mysql and php bridging.
+
+new mysqli(...)
+Uses database on local server, connected via this application.
+
+
+////
+Header (__header.php)
+if(!isset($_SESSION['fcon'])) { echo "<script>window.location.replace('login.php');</script>"; }
+Hard-coded to skip error on ‘cannot modify header case’, if you are not logged on you’ll out
+
+$module['title'];
+To show data from array module, mostly for page title.
+
+aboutHRModule() 
+Javascript Function for nav-bar, this used for showing the about this application.
+
+
+////
+Footer (__footer.php)
+function aboutHRModule()
+This the what we called from Header, this function will show sweetalert plugins as modal box to show about this application.
+
+mysqli_close($ki);
+To kill the connection that created on the __connection.php, once process started need to be killed once again to keep performance of server.
+
+
+////
+Health Claim Form (health_claim.php)
+$getTotalUsedClaim
+Get total data from health claim table with condition of status not rejected
+
+$TUsed
+Load data from $getTotalUsedClaim.
+
+$getQuotaClaim
+Get personal total quota from cuti_quota
+
+$QClm
+Load data from $getQuotaClaim
+
+$calRemainingBalance
+Calculate $QClm as Quota - $TUsed as Used
+
+$getConfigurationData
+Get information from konfigurasi table, such as current HR Manager, current Office Manager, and active year
+
+$Conf
+Load data from $getConfigurationData
+
+$_SESSION['hclaiminfo']
+Used for showing alert when if there any session with hclaiminfo, after shown on this page it will removed automatically.
+
+calcforme()
+Javascript to show calculation (client side) on form.
+
+totalv
+Media for contain the calculation of data that we can get from form
+
+
+////
+Processor Health Claim (__add_hclaim.php)
+$getHRandOfficeManager
+Get username of HR Manager and Office Manager, the data come from POST from $getConfigurationData at health_claim.php
+
+$HRnOM
+Load data from $getHRandOfficeManager
+
+File Upload :
+$target_dir
+Locate the target directory, current is claimdocs/username. Note : please create folder with username (if any new user) and give access to create file for the folder and application.
+
+$target_file
+File that gonna be send to server by uploading
+
+$uploadOk
+To toggle whether the uploading gonna success or not
+0 = Upload Failed
+2 = Upload Success, will continue to inserting data and upload information
+3 = Upload Failed, but we give them to insert data without files (mostly not worked)
+
+$imageFileType
+Get extension of files
+
+$check
+Check if $target_file is image files
+If True : $uploadOk = 1, Not True : $uploadOk = 3
+
+file_exists($target_file)
+Check if $target_file name is exist on server or not
+If exist, then :
+Add salt and mixin into new name file to skip duplicated that will overwrite the old files
+
+$_FILES["fileToUpload"]["size"] > 500000
+Files with size over 500000 (500kb), cannot be uploaded ($uploadOk = 0)
+
+$imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif"
+If not jpg, png, jpeg, gif : upload failed ($uploadOk = 0)
+
+move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)
+Upload the file into $target_dir
+
+$dateConverter
+Convert the date form into array
+
+$newDate
+Form the result of $dateConverter into new form (yyyy/mm/dd)
+
+$_SESSION['hclaiminfo']
+Set hclaiminfo to show alert/information on health_claim.php
+
+$_SESSION['hclaiminfo_detail']
+Additional of hclaiminfo, mostly used for show affected claim number
+
+
+////
+View Health Claim (view_hclaim.php)
+$getHealthClaimDataDraft
+Get sum of data health claim with status of DRAFT
+
+$getHealthClaimDataApproved
+Get sum of data health claim with status of APPROVED
+
+$getHealthClaimDataRejected
+Get sum of data health claim with status of REJECTED
+
+$getHealthClaimDataPaid
+Get sum of data health claim with status of PAID
+
+$HCD
+Load $getHealthClaimData... (multi uses)
+
+
+////
+Admin Health Claim (admin_hclaim.php)
+Have same feature with View Health Claim, but only for HR (Manager, Supervisor), OM, and MD
+
+
+////
+Action Health Claim (action_hclaim.php)
+Pre process the action from view_hclaim.php
+
+$noc
+Claim Number, for $_GET['...']
+
+
+////
+Action Pay Health Claim (actionpay_hclaim.php)
+Pre process the action from info_hclaim.php (pay only, action by office manager)
+
+$noc
+Claim Number, for $_GET['...']
+
+
+////
+Info Health Claim (info_hclaim.php)
+$getUserNameKS
+Load data from tables this used for compare the user on claim with the session user, key : claim number
+
+$UNKS
+Store data from $getUserNameKS so we can compate with $_SESSION['fusn']
+
+$getinfoHealthClaimData
+Load all required data for info
+
+$infoHCD
+Store data from $getinfoHealthClaimData so we can show it on info_hclaim.php
+
+$getListOfClaims
+Load details of claim from different table (claim_kesehatan_detail), key : claim number
+
+Javascript:
+cancelDraft()
+SweetAlert modal when deleting claim
+
+submitDraft()
+SweetAlert modal when approving claim
+
+prohibitDraft()
+SweetAlert modal when rejecting claim
+
+payDraft()
+SweetAlert modal when paying approved claim
+
+
+////
+Leave Claim Selector (leave_claim.php)
+$getLeaveType
+Load information from cuti_jenis as selector to leave form
+
+
+////
+Leave Claim Form (form_lclaim.php)
+$_POST['leave-type']
+Load POST data sent from Leave Claim Selector
+
+$getLeaveStatisticsHere
+Load data for leave statistics
+
+$LSH
+Store the data from $getLeaveStatisticsHere
+
+switch($_POST['leave-type'])
+Make a selection for every leave type should use what column on database
+
+$LT
+Selected leave-type from switch($_POST['leave-type']) will generate a result that store in $LT (based on switch on line 17)
+
+$getMaxQuotaFromSelectedLeave
+Load data from this script to get maximum quota of selected column
+
+$MQSL
+Store $getMaxQuotaFromSelectedLeave data to use later
+
+$cLT
+Selected leave-type from switch($_POST['leave-type']) will generate a result that store in $cLT (based on switch on line 105)
+
+$typeA
+An array to divide type of leave (1-4), for creating a combobox filled with +0.5 each (0.5, 1.0, 1.5, etc)
+
+Javascript:
+$.POST checkDate()
+To send dates and total day and return the result as ajax (without refreshing page), used for getting last date
+
+addDayOff()
+SweetAlert modal that put on button for send the page into inlieu form
+
+
+////
+Processor Leave Claim (__add_lclaim.php)
+$getDirectAcc
+Load who is my direct acc (head), if any. key : username
+
+$DA
+Store $getDirectAcc data to here
+
+$totalDays
+Load from $_POST['TotalDays']
+
+$startdate
+Load from $_POST['start-date'], and then converted into friendly format of mysqli
+
+$enddate
+Load from $_POST['send-date'], and then converted into friendly format of mysqli
+
+$emergency
+Load from $_POST['emergency-contact']
+
+$reason
+Load from $_POST['leave-reason']
+
+$type
+Load from $_POST['type-leave']
+
+$_SESSION['lclaiminfo']
+Set lclaiminfo to show alert/information on leave_claim.php
+
+$_SESSION['lclaiminfo_detail']
+Additional of lclaiminfo, mostly used for show affected claim number
+
+
+////
+View Leave Claim (view_lclaim.php)
+$getLeaveClaimDataDraft
+Get sum of data leave claim with status of DRAFT
+
+$getLeaveClaimDataApproved
+Get sum of data leave claim with status of APPROVED
+
+$getLeaveClaimDataRejected
+Get sum of data leave claim with status of REJECTED
+
+$LCD
+Load $getLeaveClaimData... (multi uses)
+
+
+////
+Admin Leave Claim (admin_lclaim.php)
+Have same feature with View Leave Claim, but only show your subordinate as data entities
+
+
+////
+Action Leave Claim (action_lclaim.php)
+Pre process the action from info_lclaim.php
+
+$noc
+Claim Number, for $_GET['...']
+
+
+////
+Info Leave Claim
+$getUserNameLV
+Load username and direct_acc of claim, key : claim number
+
+$UNLV
+Store $getUserNameLV to use later
+
+$getinfoLeaveClaimData
+Load all required data for info
+
+$infoLCD
+Store data from $getinfoLeaveClaimData
+
+Javascript:
+cancelDraft()
+SweetAlert modal when deleting claim
+
+approveDraft()
+SweetAlert modal when approving claim
+
+rejectDraft()
+SweetAlert modal when rejecting claim
+
+
+////
+Variable Pay Form (vp_claim.php)
+$_SESSION['vpclaiminfo']
+Set vpclaiminfo to show alert/information on vp_claim.php
+
+$_SESSION['lclaiminfo_detail']
+Additional of vpclaiminfo, mostly used for show affected claim number
+
+$getListUserName
+Load all username for form
+
+$LUN
+Store data $getListUserName here
+
+
+////
+Processor Variable Pay Claim (__add_vpclaim.php)
+$getDirectAcc
+Load who is my direct acc (head), if any. key : username
+
+$DA
+Store $getDirectAcc data to here
+
+$startdate
+Load from $_POST['start-date'], and then converted into friendly format of mysqli
+
+$enddate
+Load from $_POST['send-date'], and then converted into friendly format of mysqli
+
+$ListKal
+Load date list from kalender table
+
+$LK
+Store data $ListKal here
+
+$totalDays
+Count array created from $LK
+
+$arrayWithRestInNight
+Set array with resting = luarkota & luarnegeri
+if type in array as resting = count - 1, called as $finalDays
+if type not in array : $finalDays = $totalDays
+
+if($_POST['variable-user'] != $_SESSION['fusn'])
+If inserted user wasn't you, then it must be someone : $InputBy = 'someone'
+
+$_SESSION['vpclaiminfo']
+Set vpclaiminfo to show alert/information on vp_claim.php
+
+$_SESSION['vpclaiminfo_detail']
+Additional of vpclaiminfo, mostly used for show affected claim number
+
+
+////
+View Variable Pay Claim (view_vpclaim.php)
+$getVarPayClaimDataDraft
+Get sum of data variable pay claim with status of DRAFT
+
+$getVarPayClaimDataApproved
+Get sum of data variable pay claim with status of APPROVED
+
+$getVarPayClaimDataRejected
+Get sum of data variable pay claim with status of REJECTED
+
+$_SESSION['vpclaiminfo']
+Set vpclaiminfo to show alert/information on vp_claim.php
+
+$_SESSION['vpclaiminfo_detail']
+Additional of vpclaiminfo, mostly used for show affected claim number
+
+$VPCD
+Load $getVarPayClaimData... (multi uses)
+
+
+////
+Admin Variable Pay Claim (admin_vpclaim.php)
+Have same feature with View Leave Claim, but only show your subordinate as data entities
+
+
+////
+Action Variable Pay Claim (action_vpclaim.php)
+Pre process the action from info_vpclaim.php
+
+$noc
+Claim Number, for $_GET['...']
+
+
+////
+Info Leave Claim
+$getUserNameLV
+Load username and direct_acc of claim, key : claim number
+
+$UNVP
+Store $getUserNameLV to use later
+
+$getinfoVarPayClaimData
+Load all required data for info
+
+$infoVPCD
+Store data from $getinfoVarPayClaimData
+
+$getListOfDate
+Load tanggal from kalender table
+
+$LOC
+Store data $getListOfDate here
+
+$iD
+Store $LOC['tanggal'] as array here, delimiter = '-'
+
+$arraySetDollar
+For user with privileges / $_SESSION['fprv'] in (5,6) can view form to set dollar conversion rate
+
+Javascript:
+cancelDraft()
+SweetAlert modal when deleting claim
+
+submitDraft()
+SweetAlert modal when approving claim
+
+prohibitDraft()
+SweetAlert modal when rejecting claim
+
+setDollar()
+JS Sent change to 'claim number' and conv 'dollar rate as rupiah'
+
+
+////
+Off Request [In Lieu] (offreq_lclaim.php)
+$_SESSION['ilinfo']
+Set ilinfo to show alert/information
+
+$getLeaveTypeSixtoEleven
+Load in lieu off type from table with id 6 to 11
+edit : 31122016 - id 5 to 11, variable name not change
+
+$LTSE
+Store data $getLeaveTypeSixtoEleven here
+
+$getInLieuQuota
+Get in lieu quota based on cuti_quota table, key : username
+
+$ILQ
+Store data $getInLieuQuota here
+
+$getMyInlieuRequest
+Load in lieu rows with restriction only DRAFT and as my username
+
+$MILR
+Store data $getMyInlieuRequest here
+
+$startfrom
+Set $MILR['startfrom'] as value here
+
+$untilto
+Set $MILR['untilto'] as value here
+
+Javascript:
+approveThis()
+SweetAlert modal when approving claim
+
+rejectThis()
+SweetAlert modal when rejecting claim
+
+
+////
+Action of In Lieu (action_offreq.php)
+$starter
+Get data from $_POST['StartDate']
+
+$ender
+Get data from $_POST['EndDate']
+
+switch($_POST['LeaveType'])
+Select automatically of Type Leave
+
+$IL
+Type Leave automatically insert here
+
+$getFullDayCalendar
+Get tanggal from kalender where weekend and holiday set OFF / merah = N
+
+$FDC
+Store data $getFullDayCalendar here
+
+$list
+Store string $FDC here
+
+$countFDC
+Count from $list that has been converted into array
+
+$getMyDirectAcc
+Load direct_acc from users, key : username
+
+$MDA
+Store data $getMyDirectAcc here
+
+$getTheTruthBehind
+Load data from table, where username having direct acc / head, and the head is you
+
+$TTB
+Store data $getTheTruthBehind here
+
+$getTotalDateRequest
+Load total date (and additionally the type) that used by user to ask In Lieu
+
+$TDR
+Store data $getTotalDateRequest here
+
+switch($TDR['type'])
+Select automatically correct column for the type
+
+$ColSec
+Pre-defined column for $TDR['type'] stored here
+
+
+////
+Change Password Interface (chpwd.php)
+$_SESSION['passwordinfo']
+Set passwordinfo to show alert/information
+
+
+////
+Action Change Password (__changepassdrow.php)
+Note: It's intentionally use passdrow, it just pun and also a salt :)
+$curPWD
+Current Password (input)
+
+$newPWD
+New Password (input)
+
+$conPWD
+Confirm New Password (input)
+
+$chnewPWD
+Check new password is different with old ?
+If yes 		: update
+If no/null	: wrongpwd / wrong password
+
+
+////
+User Profile (profiles.php)
+$getUserProfile
+Load user data from users table
+
+$UP
+Store data $getUserProfile here
